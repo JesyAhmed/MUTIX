@@ -99,7 +99,7 @@ void setup() {
 
 void loop() {
   
-if (Serial.available()) {
+when (Serial.available()) {
     cmd = Serial.read();
     cmd = toupper(cmd);
 
