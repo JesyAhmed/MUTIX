@@ -2,15 +2,15 @@
 
 Servo myservo;  
 int pos = 0; 
-int pumpPin = 11;     
-int servoPin = 12; 
+# define pumpPin  11     
+# define servoPin  12
 
 // Motor pin mapping
 const int ENA = 5;   
 const int IN1 = 6;   
 const int IN2 = 7;
 
-const int ENB = 10;   
+const int ENB = 3;   
 const int IN3 = 8;   
 const int IN4 = 9;
 
@@ -39,9 +39,11 @@ void setup() {
   myservo.write(90); 
 
   Serial.begin(9600);
-  Serial.println("Enter command: W=F, S=B, A=L, D=R, X=STOP ,S=breake , E=Extinguish ,p=pumb , ");
+  Serial.println("Enter command: W=F, S=B, A=L, D=R, X=STOP ,S=breake , E=Extinguish ,p=pumb ,Y =servoRight , Z=servoLeft ");
 
 }
+
+   // Motor functions
 
   void moveForward(int speed) {
   digitalWrite(IN1, HIGH);
@@ -88,48 +90,50 @@ void setup() {
   analogWrite(ENB, 0);
 }
 
+// Servo to the right
+void servoRight() {
+  myservo.write(120);     
+}
 
-  /*void brakeMotors() {
+// Servo to the left
+void servoLeft() {
+  myservo.write(60);        
+}
+
+
+
+  void breakeMotors() {
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, HIGH);
 }
-*/
+
 
 void loop() {
-  
-when (Serial.available()) {
+  if (Serial.available()) {
     cmd = Serial.read();
     cmd = toupper(cmd);
 
-    if (cmd == 'E') {  
-      digitalWrite(pumpPin, HIGH);
-      for (int j = 0; j < 3; j++) {
-        for (int pos = 60; pos <= 120; pos += 2) {
-          myservo.write(pos);
-          delay(15);
-        }
-        for (int pos = 120; pos >= 60; pos -= 2) {
-          myservo.write(pos);
-          delay(15);
-        }
-      }
-      digitalWrite(pumpPin, LOW);
-      myservo.write(90);
-    }
-    
-    else if (cmd == 'P') {
-     pumpState = !pumpState;  //
-     digitalWrite(pumpPin, pumpState ? HIGH : LOW);
-}
+    switch (cmd) {
+      case 'Y': servoRight(); break ; //servo to right  
+      case 'Z': servoLeft(); break ; // servo to left
 
-    else if (cmd == 'F') moveForward(speedValue);
-    else if (cmd == 'B') moveBackward(speedValue);
-    else if (cmd == 'L') turnLeft(speedValue);
-    else if (cmd == 'R') turnRight(speedValue);
-    else if (cmd == 'X') stopMotors();
-    //else if (cmd == 'S') breakeMotors();
-   
- }
+      case 'P':  // Toggle pump
+        pumpState = !pumpState;
+        digitalWrite(pumpPin, pumpState ? HIGH : LOW);
+        Serial.println(pumpState ? "Pump ON" : "Pump OFF");
+        break;
+
+      case 'F': moveForward(speedValue); break;
+      case 'B': moveBackward(speedValue); break;
+      case 'L': turnLeft(speedValue); break;
+      case 'R': turnRight(speedValue); break;
+      case 'X': stopMotors(); break;
+      case 'S': breakeMotors(); break;
+      default:  // Error handling for invalid commands
+        Serial.println("Error: Invalid Command!");
+        break;
+    }
+  }
 }
